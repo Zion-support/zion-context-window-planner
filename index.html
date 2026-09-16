@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Zion Context Window Planner</title>
+<meta name="description" content="Budget your LLM context window: system prompt, RAG chunks, chat history, tool outputs and response reserve per model. Free tool by Zion Tech Group.">
+<style>
+:root{--bg:#0a1114;--card:#122029;--acc:#22d3ee;--txt:#e5f4fa;--mut:#8faebb}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--txt)}
+header{padding:48px 24px 24px;text-align:center;background:linear-gradient(160deg,#0b3442,#0a1114)}
+h1{margin:0 0 8px}.wrap{max-width:920px;margin:0 auto;padding:24px}
+.panel{background:var(--card);border:1px solid #1c3a48;border-radius:14px;padding:20px;margin-bottom:20px}
+label{display:block;font-size:.85rem;color:var(--mut);margin:12px 0 4px}
+input,select{width:100%;padding:10px;border-radius:8px;border:1px solid #27505f;background:#0d1a21;color:var(--txt)}
+.bar{display:flex;height:34px;border-radius:10px;overflow:hidden;margin-top:10px;border:1px solid #1c3a48}
+.seg{height:100%;transition:width .3s;min-width:2px}
+.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:.8rem;color:var(--mut);margin-top:8px}
+.legend span::before{content:'■ ';color:var(--c)}
+.over{color:#f87171;font-weight:700}
+.ok{color:var(--acc);font-weight:700}
+footer{padding:32px 24px;text-align:center;color:var(--mut);font-size:.85rem;border-top:1px solid #16303c;margin-top:40px}
+footer a{color:var(--acc);text-decoration:none;margin:0 8px}
+</style>
+</head>
+<body>
+<header><h1>📏 Zion Context Window Planner</h1>
+<p>Allocate your context budget before you build: system prompt, RAG, history, tool outputs, response reserve.</p></header>
+<div class="wrap">
+<div class="panel">
+<label>Model</label><select id="m"><option value="200000">Claude Sonnet/Opus (200K)</option><option value="1000000">GPT-5.1 (1M)</option><option value="1000000">Gemini 2.5 Pro (1M)</option><option value="128000">GPT-5 mini (128K)</option><option value="131072">Llama 4 Scout (128K)</option></select>
+<label>System prompt (tokens)</label><input id="sys" type="number" value="2000">
+<label>RAG retrieved content (tokens)</label><input id="rag" type="number" value="8000">
+<label>Conversation history (tokens)</label><input id="hist" type="number" value="6000">
+<label>Tool call outputs (tokens)</label><input id="tool" type="number" value="4000">
+<label>Reserve for response (tokens)</label><input id="res" type="number" value="4000">
+</div>
+<div class="panel"><div id="summary"></div><div class="bar" id="bar"></div><div class="legend" id="leg"></div></div>
+</div>
+<footer>Part of the <a href="https://ziontechgroup.com">Zion Tech Group</a> AI apps network ·
+<a href="https://ziontechgroup.com/zion-prompt-ab-playground/">Prompt A/B</a>
+<a href="https://ziontechgroup.com/zion-model-router/">Model Router</a>
+<a href="https://ziontechgroup.com/token-context-calculator/">Token Calculator</a></footer>
+<script>
+const P=[['sys','System prompt','#22d3ee'],['rag','RAG content','#818cf8'],['hist','History','#f472b6'],['tool','Tool outputs','#fbbf24'],['res','Response reserve','#34d399']];
+function calc(){const cap=+document.getElementById('m').value;let used=0;const segs=[];
+for(const[id,name,color]of P){const v=+document.getElementById(id).value||0;used+=v;segs.push([name,v,color]);}
+const free=cap-used;const pct=x=>Math.max(0,x/cap*100)+'%';
+document.getElementById('bar').innerHTML=segs.map(([n,v,c])=>`<div class="seg" style="width:${pct(v)};background:${c}"></div>`).join('')+(free>0?`<div class="seg" style="width:${pct(free)};background:#1e293b"></div>`:'');
+document.getElementById('leg').innerHTML=segs.map(([n,v,c])=>`<span style="--c:${c}">${n}: ${v.toLocaleString()}</span>`).join('')+`<span style="--c:#1e293b">Free: ${Math.max(0,free).toLocaleString()}</span>`;
+document.getElementById('summary').innerHTML=free>=0?`<span class="ok">✓ ${used.toLocaleString()} / ${cap.toLocaleString()} tokens used (${(used/cap*100).toFixed(1)}%)</span>`:`<span class="over">✗ Over budget by ${(-free).toLocaleString()} tokens — trim RAG or history, or move to a larger-context model</span>`;}
+['m','sys','rag','hist','tool','res'].forEach(id=>document.getElementById(id).addEventListener('input',calc));calc();
+</script>
+</body>
+</html>
